@@ -17,7 +17,7 @@ Future<void> main() async {
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   // isviewed = prefs.getInt('onBoard');
-  runApp(MyApp());
+  runApp(const MyApp());
 
   final cameras = await availableCameras();
 
@@ -25,6 +25,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
