@@ -1,5 +1,5 @@
 class Config:
-    SECRET_KEY = 'faa4cb293448211d19d52aa5b738954dbb755f3ce1fb2ba3a2af7a011f604c03'
+    SECRET_KEY = 'YOUR_SECRET_KEY'
     MYSQL_HOST = 'localhost'
     MYSQL_USER = 'root'
     MYSQL_PASSWORD = ''

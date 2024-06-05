@@ -81,4 +81,4 @@ def perform_detection(image_np):
     return "dummy_detection_result"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
