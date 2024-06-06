@@ -76,7 +76,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/labels.txt
-    - assets/yolov8.tflite
+    - assets/yolov9.tflite
     - assets/unsada_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -93,10 +93,11 @@ flutter:
   fonts:
     - family: Poppins
       fonts:
-        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
+          # weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
           weight: 600
-        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+        - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
   #
   # For details regarding fonts from package dependencies,
