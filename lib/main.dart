@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Unhusked Rice Detection App',
+      title: "Aulia's Apps",
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -76,6 +76,7 @@ class SplashScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Lottie.asset('assets/animations/animation1.json'),
+        
       ),
     );
   }
