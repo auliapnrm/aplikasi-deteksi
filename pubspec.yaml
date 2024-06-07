@@ -46,6 +46,9 @@ dependencies:
   path: ^1.8.0
   flutter_svg: ^1.0.3
   lottie: ^1.2.2
+  flutter_icons: ^1.1.0
+  flutter_colorpicker: ^1.1.0
+  device_frame: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -75,9 +78,10 @@ flutter:
     - assets/logo/
     - assets/icons/
     - assets/images/
+    - assets/animations/
     - assets/labels.txt
     - assets/yolov9.tflite
-    - assets/unsada_logo.png
+    - assets/camera_launcher.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
