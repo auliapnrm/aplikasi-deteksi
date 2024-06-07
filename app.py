@@ -2,12 +2,12 @@ from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
 import config
 from db import mysql
-import numpy as np
+import MySQLdb
+from datetime import datetime
 from PIL import Image
-import io
+import numpy as np
 
 app = Flask(__name__)
 app.config.from_object(config.Config)
@@ -18,34 +18,67 @@ jwt = JWTManager(app)
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    username = data.get('username')
-    nama_lengkap = data.get('nama_lengkap')
-    password = data.get('password')
+    username = data.get('username').strip()
+    nama_lengkap = data.get('nama_lengkap').strip()
+    password = data.get('password').strip()
     hashed_password = generate_password_hash(password)
 
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO users (username, nama_lengkap, password) VALUES (%s, %s, %s)", 
-                (username, nama_lengkap, hashed_password))
-    mysql.connection.commit()
-    cur.close()
+    print(f"Register attempt: {username}, {password}, {hashed_password}")
 
-    return jsonify({"message": "User registered successfully"}), 201
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("INSERT INTO users (username, password, nama_lengkap) VALUES (%s, %s, %s)", 
+                    (username, hashed_password, nama_lengkap))
+        mysql.connection.commit()
+        print(f"User registered: {username}, {hashed_password}")
+        return jsonify({"message": "User registered successfully"}), 201
+    except MySQLdb.IntegrityError:
+        print(f"Username already exists: {username}")
+        return jsonify({"message": "Username already exists"}), 409
+    finally:
+        cur.close()
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    username = data.get('username').strip()
+    password = data.get('password').strip()
+    print(f"Login attempt: {username}, {password}")
 
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM users WHERE username = %s", [username])
+    cur.execute("SELECT id, username, password, nama_lengkap FROM users WHERE username = %s", [username])
     user = cur.fetchone()
     cur.close()
 
-    if user and check_password_hash(user[3], password):
-        access_token = create_access_token(identity={'username': username, 'user_id': user[0], 'nama_lengkap': user[2]})
-        return jsonify(access_token=access_token), 200
+    if user:
+        user_id, db_username, db_hashed_password, db_nama_lengkap = user
+        print(f"User found: {user}")
+        print(f"Hashed password in DB: {db_hashed_password}")
+        print(f"Input password: {password}")
+        print(f"Length of hashed password from DB: {len(db_hashed_password)}")
+
+        # Pengecekan hash secara manual
+        try:
+            password_check = check_password_hash(db_hashed_password, password)
+            print(f"Password check result: {password_check}")
+        except Exception as e:
+            print(f"Error checking password hash: {e}")
+            password_check = False
+        
+        if password_check:
+            access_token = create_access_token(identity={'username': db_username, 'user_id': user_id, 'nama_lengkap': db_nama_lengkap})
+            print("Password matched")
+            return jsonify({
+                "access_token": access_token,
+                "username": db_username,
+                "user_id": user_id,
+                "nama_lengkap": db_nama_lengkap
+            }), 200
+        else:
+            print("Invalid password")
+            return jsonify({"message": "Invalid credentials"}), 401
     else:
+        print("User not found")
         return jsonify({"message": "Invalid credentials"}), 401
 
 @app.route('/detect', methods=['POST'])
