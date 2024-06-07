@@ -1,11 +1,12 @@
+import 'package:device_frame/device_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lottie/lottie.dart';
-
-import 'screens/home_screen.dart';
+import 'package:beras_app/models/user_model.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/register_screen.dart';
+import 'widgets/bottom_navbar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "Unhusked Rice Detection Apps",
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -26,11 +28,29 @@ class MyApp extends StatelessWidget {
         '/onboarding': (context) => const OnBoardingScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) {
+          final UserModel user = ModalRoute.of(context)!.settings.arguments as UserModel;
+          return BottomNavBar(user: user);
+        },
       },
     );
   }
 }
+
+
+// class DevicePreviewScreen extends StatelessWidget {
+//   const DevicePreviewScreen({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: DeviceFrame(
+//         device: Devices.ios.iPhone13,
+//         screen: BottomNavBar(user: user),
+//       ),
+//     );
+//   }
+// }
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({Key? key}) : super(key: key);
@@ -55,8 +75,18 @@ class _InitialScreenState extends State<InitialScreen> {
 
   Future<void> _checkLoginStatus() async {
     String? token = await storage.read(key: 'access_token');
-    if (token != null) {
-      Navigator.pushReplacementNamed(context, '/home');
+    String? userId = await storage.read(key: 'user_id');
+    String? username = await storage.read(key: 'username');
+    String? namaLengkap = await storage.read(key: 'nama_lengkap');
+
+    if (token != null && userId != null && username != null && namaLengkap != null) {
+      UserModel user = UserModel(
+        userId: int.parse(userId),
+        username: username,
+        namaLengkap: namaLengkap,
+        accessToken: token,
+      );
+      Navigator.pushReplacementNamed(context, '/home', arguments: user);
     } else {
       Navigator.pushReplacementNamed(context, '/onboarding');
     }
@@ -75,8 +105,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Lottie.asset('assets/animations/animation1.json'),
-        
+        child: Lottie.asset('assets/animations/animation1.json', height: 150),
       ),
     );
   }
