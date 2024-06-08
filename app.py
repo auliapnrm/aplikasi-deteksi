@@ -110,6 +110,32 @@ def detect():
 
     return jsonify({"detection_result": detection_result}), 200
 
+@app.route('/save_detection_results', methods=['POST'])
+@jwt_required()
+def save_detection_results():
+    current_user = get_jwt_identity()
+    user_id = current_user['user_id']
+
+    data = request.get_json()
+    detection_counts = data.get('detection_counts')
+
+    detection_time = datetime.now()
+    cur = mysql.connection.cursor()
+    try:
+        for label, count in detection_counts.items():
+            cur.execute(
+                "INSERT INTO detection_results (user_id, label, count, detection_time) VALUES (%s, %s, %s, %s)",
+                (user_id, label, count, detection_time)
+            )
+        mysql.connection.commit()
+    except Exception as e:
+        mysql.connection.rollback()
+        return jsonify({"message": f"Error saving detection results: {str(e)}"}), 500
+    finally:
+        cur.close()
+
+    return jsonify({"message": "Detection results saved successfully"}), 200
+
 def perform_detection(image_np):
     return "dummy_detection_result"
 
