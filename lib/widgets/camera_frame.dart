@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CameraFrame extends StatelessWidget {
-  const CameraFrame({required Key key}) : super(key: key);
+  const CameraFrame({required Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
