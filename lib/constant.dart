@@ -18,7 +18,6 @@ const kPrimaryColor = Color(0xFF3382CC);
 final kShadowColor = const Color(0xFFB7B7B7).withOpacity(.16);
 final kActiveShadowColor = const Color(0xFF4056C6).withOpacity(.15);
 
-// Gaya Style
 const kHeadingTextStyle = TextStyle(
   fontSize: 22,
   fontWeight: FontWeight.w600,
@@ -30,4 +29,11 @@ const kTitleTextstyle = TextStyle(
   fontSize: 18,
   color: kTitleTextColor,
   fontWeight: FontWeight.bold,
+);
+
+// Gradient Colors
+const LinearGradient kGradient = LinearGradient(
+  colors: [Color(0xFF5B86E5), Color(0xFF36D1DC)], // Biru ke Ungu
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
 );
