@@ -20,7 +20,7 @@ class TensorflowService {
   Future<void> loadModel() async {
     try {
       await Tflite.loadModel(
-        model: "assets/model_unquant.tflite",
+        model: "assets/yolov9.tflite",
         labels: "assets/labels.txt",
       );
       _modelLoaded = true;
@@ -32,13 +32,16 @@ class TensorflowService {
   Future<void> runModel(CameraImage img) async {
     if (_modelLoaded) {
       try {
-        List<dynamic>? recognitions = await Tflite.runModelOnFrame(
+        List<dynamic>? recognitions = await Tflite.detectObjectOnFrame(
           bytesList: img.planes.map((plane) {
             return plane.bytes;
-          }).toList(), // required
+          }).toList(),
           imageHeight: img.height,
           imageWidth: img.width,
-          numResults: 3,
+          imageMean: 127.5,
+          imageStd: 127.5,
+          numResultsPerClass: 1,
+          threshold: 0.4,
         );
 
         if (recognitions != null && recognitions.isNotEmpty) {
