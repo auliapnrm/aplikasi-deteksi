@@ -1,12 +1,16 @@
+import 'package:beras_app/models/user_model.dart';
 import 'package:beras_app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../constant.dart';
 import 'onboard_model.dart';
+import '../constant.dart';
 
 class OnBoard extends StatefulWidget {
-  const OnBoard({Key? key}) : super(key: key);
+
+
+  final UserModel user;
+
+  const OnBoard({Key? key, required this.user}) : super(key: key);
 
   @override
   _OnBoardState createState() => _OnBoardState();
@@ -15,6 +19,8 @@ class OnBoard extends StatefulWidget {
 class _OnBoardState extends State<OnBoard> {
   int currentIndex = 0;
   late PageController _pageController;
+  final UserModel userModel = UserModel(userId: 1, username: 'testUser', namaLengkap: 'Test User', accessToken: 'testToken'); // Placeholder
+
   List<OnboardModel> screens = <OnboardModel>[
     OnboardModel(
       img: 'assets/illustrations/1.png',
@@ -72,7 +78,7 @@ class _OnBoardState extends State<OnBoard> {
             onPressed: () {
               _storeOnboardInfo();
               Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()));
+                  MaterialPageRoute(builder: (context) => HomeScreen(user: widget.user,)));
             },
             child: Text(
               "Lewati",
@@ -151,9 +157,8 @@ class _OnBoardState extends State<OnBoard> {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const HomeScreen()));
+                              builder: (context) => HomeScreen(user: widget.user)));
                     }
-
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.bounceIn,
