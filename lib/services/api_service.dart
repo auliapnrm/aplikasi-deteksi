@@ -2,14 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:beras_app/models/user_model.dart';
 
 class ApiService {
   static const String baseUrl = 'http://192.168.20.136:5000/';
   final storage = const FlutterSecureStorage();
 
-  Future<bool> login(String username, String password) async {
+  Future<UserModel?> login(String username, String password) async {
+    print("Attempting login with: $username, $password");
+
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse('${baseUrl}login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -17,18 +20,21 @@ class ApiService {
       }),
     );
 
+    print("Login response: ${response.statusCode}");
+    print("Login response body: ${response.body}");
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       await storage.write(key: 'access_token', value: data['access_token']);
-      return true;
+      return UserModel.fromJson(data);
     } else {
-      return false;
+      return null;
     }
   }
 
   Future<bool> register(String username, String namaLengkap, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/register'),
+      Uri.parse('${baseUrl}register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -36,6 +42,9 @@ class ApiService {
         'password': password,
       }),
     );
+
+    print("Register response: ${response.statusCode}");
+    print("Register response body: ${response.body}");
 
     return response.statusCode == 201;
   }
@@ -48,7 +57,7 @@ class ApiService {
 
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('$baseUrl/detect'),
+      Uri.parse('${baseUrl}detect'),
     );
     request.headers['Authorization'] = 'Bearer $token';
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
@@ -66,5 +75,27 @@ class ApiService {
 
   Future<void> logout() async {
     await storage.delete(key: 'access_token');
+  }
+
+  Future<void> saveDetectionResults(UserModel user, Map<String, int> detectionCounts) async {
+    final token = await storage.read(key: 'access_token');
+    if (token == null) {
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse('${baseUrl}save_detection_results'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'detection_counts': detectionCounts,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to save detection results');
+    }
   }
 }
