@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lottie/lottie.dart';
+
+import '../constant.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({Key? key}) : super(key: key);
@@ -36,9 +38,19 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: TextButton(
+                  onPressed: _onDone,
+                  child: const Text(
+                    'Lewati',
+                    style: TextStyle(color: Colors.greenAccent),
+                  ),
+                ),
+              ),
               Expanded(
                 child: PageView.builder(
-                  itemCount: demo_data.length,
+                  itemCount: demoData.length,
                   controller: _pageController,
                   onPageChanged: (index) {
                     setState(() {
@@ -46,16 +58,16 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     });
                   },
                   itemBuilder: (context, index) => OnBoardContent(
-                    image: demo_data[index].image,
-                    title: demo_data[index].title,
-                    description: demo_data[index].description,
+                    animation: demoData[index].animation,
+                    title: demoData[index].title,
+                    description: demoData[index].description,
                   ),
                 ),
               ),
               Row(
                 children: [
                   ...List.generate(
-                    demo_data.length,
+                    demoData.length,
                     (index) => Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: DotIndicator(
@@ -67,9 +79,9 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   SizedBox(
                     height: 55,
                     width: 55,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_pageIndex == demo_data.length - 1) {
+                    child: InkWell(
+                      onTap: () {
+                        if (_pageIndex == demoData.length - 1) {
                           _onDone();
                         } else {
                           _pageController.nextPage(
@@ -78,12 +90,19 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           );
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        shape: const CircleBorder(),
-                      ),
-                      child: Image.asset(
-                        "assets/icons/right-arrow.png",
-                        color: Colors.white,
+                      borderRadius: BorderRadius.circular(
+                          12), // Atur radius sesuai kebutuhan
+                      child: Container(
+                        height: 55,
+                        width: 55,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: kGradient,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -123,63 +142,65 @@ class DotIndicator extends StatelessWidget {
 }
 
 class OnBoard {
-  final String image, title, description;
+  final String animation, title, description;
 
   OnBoard({
-    required this.image,
+    required this.animation,
     required this.title,
     required this.description,
   });
 }
 
-final List<OnBoard> demo_data = [
+final List<OnBoard> demoData = [
   OnBoard(
-    image: "assets/illustrations/1.png",
-    title: "Hi, periksa jenis tanaman Anda \ndengan Aplikasi kami",
+    animation: "assets/animations/animation2.json",
+    title: "Hi, periksa kualitas gabah beras kamu dengan\nAplikasi kami",
     description:
-        "Disini Anda bisa mengklasifikasi tanaman Aglaonema Anda hanya dengan memasukkan foto",
+        "Disini kamu bisa mendeteksi kualitas gabah beras kamu hanya dengan memasukkan foto saja, lho.",
   ),
   OnBoard(
-    image: "assets/illustrations/2.png",
-    title: "Anda dapat memeriksa \njenisnya",
+    animation: "assets/animations/animation3.json",
+    title: "Kamu dapat memeriksa \nsetiap kualitasnya",
     description:
-        "Kalian hanya perlu memasukkan foto dan sistem kami akan memprediksi jenis tanaman Anda",
+        "Kalian hanya perlu memasukkan foto dan sistem kami akan mendeteksi kualitas gabah beras kamu",
   ),
   OnBoard(
-    image: "assets/illustrations/3.png",
+    animation: "assets/animations/animation4.json",
     title: "Menggunakan teknologi \nArtificial Intelligence",
     description:
-        "Sistem kami menggunakan Machine Learning untuk memprediksi jenis tanaman Anda",
+        "Sistem kami menggunakan Machine Learning untuk mendeteksi kualitas gahah beras dengan menggunakan arsitektur YOLOv9",
   ),
 ];
 
 class OnBoardContent extends StatelessWidget {
   const OnBoardContent({
     Key? key,
-    required this.image,
+    required this.animation,
     required this.title,
     required this.description,
   }) : super(key: key);
 
-  final String image, title, description;
+  final String animation, title, description;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Spacer(),
-        Image.asset(
-          image,
-          height: 180,
+        const SizedBox(height: 20),
+        Lottie.asset(
+          animation,
+          height: 280,
+          width: 200,
         ),
-        const Spacer(),
+        const SizedBox(height: 50),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .headline5
-              ?.copyWith(fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: Theme.of(context).textTheme.headline5?.fontSize,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(
           height: 16,
@@ -187,8 +208,12 @@ class OnBoardContent extends StatelessWidget {
         Text(
           description,
           textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: Theme.of(context).textTheme.bodyText2?.fontSize,
+          ),
         ),
-        const Spacer(),
+        const SizedBox(height: 25),
       ],
     );
   }
