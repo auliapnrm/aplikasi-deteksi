@@ -1,5 +1,5 @@
-import 'model_service.dart';
 import 'package:camera/camera.dart';
+import 'model_service.dart';
 
 class CameraService {
   static final CameraService _cameraService = CameraService._internal();
