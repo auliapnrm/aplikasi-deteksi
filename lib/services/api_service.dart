@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:beras_app/models/user_model.dart';
@@ -49,7 +49,7 @@ class ApiService {
     return response.statusCode == 201;
   }
 
-  Future<String?> detectImage(File image) async {
+  Future<List<dynamic>?> detectImage(Uint8List imageBytes) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
       return null;
@@ -60,7 +60,7 @@ class ApiService {
       Uri.parse('${baseUrl}detect'),
     );
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+    request.files.add(http.MultipartFile.fromBytes('image', imageBytes));
 
     final response = await request.send();
 
@@ -96,6 +96,30 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to save detection results');
+    }
+  }
+  
+  Future<List<dynamic>?> detectFrame(Uint8List frameBytes) async {
+    final token = await storage.read(key: 'access_token');
+    if (token == null) {
+      return null;
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${baseUrl}detect_frame'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(http.MultipartFile.fromBytes('frame', frameBytes));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final data = jsonDecode(responseData);
+      return data['detection_result'];
+    } else {
+      return null;
     }
   }
 }
