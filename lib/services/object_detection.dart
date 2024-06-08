@@ -1,54 +1,25 @@
 import 'dart:typed_data';
-import 'package:tflite/tflite.dart';
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 
 class ObjectDetection {
-  ObjectDetection() {
-    _loadModel();
-  }
-
-  Future<void> _loadModel() async {
-    await Tflite.loadModel(
-      model: "assets/yolov9.tflite",
-      labels: "assets/labels.txt",
-    );
-  }
+  ObjectDetection();
 
   Future<List<dynamic>?> detectObjects(Uint8List imageBytes) async {
-    var recognitions = await Tflite.detectObjectOnImage(
-      path: "", // Tambahkan argumen path sebagai string kosong
-      imageMean: 127.5, // Tambahkan imageMean
-      imageStd: 127.5, // Tambahkan imageStd
-      numResultsPerClass: 1,
-      threshold: 0.4,
-      asynch: true,
-    );
-    return recognitions;
+    // Menggunakan API Service untuk mendeteksi objek
   }
 
-  Future<List<dynamic>?> detectObjectsOnFrame(CameraImage image) async {
-    var recognitions = await Tflite.runModelOnFrame(
-      bytesList: image.planes.map((plane) => plane.bytes).toList(),
-      imageHeight: image.height,
-      imageWidth: image.width,
-      imageMean: 127.5,
-      imageStd: 127.5,
-      numResults: 1,
-      threshold: 0.4,
-    );
-    return recognitions;
+  Future<List<dynamic>?> detectObjectsOnFrame(Uint8List frameBytes) async {
+    // Menggunakan API Service untuk mendeteksi objek pada frame
   }
 }
 
 class ObjectPainter extends CustomPainter {
   final List<dynamic> recognitions;
-  final Uint8List imageBytes;
   final Size imageSize;
 
   ObjectPainter({
     required this.recognitions,
-    required this.imageBytes,
     required this.imageSize,
   });
 

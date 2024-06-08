@@ -1,67 +1,27 @@
 import 'package:camera/camera.dart';
-import 'model_service.dart';
 
 class CameraService {
-  static final CameraService _cameraService = CameraService._internal();
-
-  factory CameraService() {
-    return _cameraService;
-  }
-
-  CameraService._internal();
-
-  final TensorflowService _tensorflowService = TensorflowService();
-
-  CameraController? _cameraController;
-  CameraController? get cameraController => _cameraController;
-
-  bool available = true;
+  CameraController? cameraController;
 
   Future<void> startService(CameraDescription cameraDescription) async {
-    _cameraController = CameraController(
-      cameraDescription,
-      ResolutionPreset.veryHigh,
-    );
+    cameraController = CameraController(cameraDescription, ResolutionPreset.high);
+    await cameraController!.initialize();
+  }
 
-    try {
-      await _cameraController!.initialize();
-    } catch (e) {
-      rethrow;
+  Future<void> startStreaming() async {
+    if (cameraController != null) {
+      cameraController!.startImageStream((CameraImage image) {
+      });
+    }
+  }
+
+  Future<void> stopImageStream() async {
+    if (cameraController != null) {
+      await cameraController!.stopImageStream();
     }
   }
 
   void dispose() {
-    _cameraController?.dispose();
-  }
-
-  Future<void> startStreaming() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-
-    _cameraController!.startImageStream((img) async {
-      try {
-        if (available) {
-          available = false;
-          await _tensorflowService.runModel(img);
-          await Future.delayed(const Duration(seconds: 1));
-          available = true;
-        }
-      } catch (e) {
-        print('Error running model with current frame: $e');
-      }
-    });
-  }
-
-  Future<void> stopImageStream() async {
-    if (_cameraController == null || !_cameraController!.value.isStreamingImages) {
-      return;
-    }
-
-    try {
-      await _cameraController!.stopImageStream();
-    } catch (e) {
-      rethrow;
-    }
+    cameraController?.dispose();
   }
 }
