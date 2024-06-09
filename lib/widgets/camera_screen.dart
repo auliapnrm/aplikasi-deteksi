@@ -1,12 +1,18 @@
-import 'package:beras_app/models/user_model.dart';
-import 'package:beras_app/services/api_service.dart';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:beras_app/models/user_model.dart';
+import 'package:beras_app/services/api_service.dart';
 
-import 'camera_header.dart';
+import 'customcircular.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({Key? key, required this.controller, required this.user, required this.apiService}) : super(key: key);
+  const CameraScreen(
+      {Key? key,
+      required this.controller,
+      required this.user,
+      required this.apiService})
+      : super(key: key);
   final CameraController controller;
   final UserModel user;
   final ApiService apiService;
@@ -16,6 +22,7 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  late Future<void> _initializeControllerFuture;
   List<dynamic>? _recognitions;
   final Map<String, int> _detectionCounts = {
     'Bagus': 0,
@@ -26,6 +33,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeControllerFuture = widget.controller.initialize();
     widget.controller.startImageStream(_processCameraImage);
   }
 
@@ -48,14 +56,12 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Uint8List _convertYUV420ToImage(CameraImage image) {
-    // Konversi image ke format yang dapat digunakan untuk pengiriman ke server
-    // Implementasikan fungsi ini sesuai dengan format data yang diperlukan oleh server
+    // Your implementation here
+    return Uint8List(0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
@@ -64,7 +70,6 @@ class _CameraScreenState extends State<CameraScreen> {
             return Stack(
               children: <Widget>[
                 CameraPreview(widget.controller),
-                const CameraHeader(),
                 if (_recognitions != null)
                   CustomPaint(
                     painter: ObjectPainter(
@@ -73,6 +78,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         widget.controller.value.previewSize!.height,
                         widget.controller.value.previewSize!.width,
                       ),
+                      imageBytes: Uint8List(0),
                     ),
                   ),
                 Positioned(
@@ -87,7 +93,8 @@ class _CameraScreenState extends State<CameraScreen> {
                       children: _detectionCounts.entries.map((entry) {
                         return Text(
                           '${entry.key}: ${entry.value}',
-                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
                         );
                       }).toList(),
                     ),
@@ -96,9 +103,9 @@ class _CameraScreenState extends State<CameraScreen> {
               ],
             );
           } else {
-            return const Center(child: CustomCircularProgressIndicator(
-              imagePath: 'assets/logo/circularcustom.png', size: 15,
-            ));
+            return const Center(
+                child: CustomCircularProgressIndicator(
+                    imagePath: 'assets/logo/circularcustom.png', size: 25));
           }
         },
       ),
@@ -111,5 +118,40 @@ class _CameraScreenState extends State<CameraScreen> {
     widget.controller.stopImageStream();
     widget.controller.dispose();
     super.dispose();
+  }
+}
+
+class ObjectPainter extends CustomPainter {
+  final List<dynamic> recognitions;
+  final Uint8List imageBytes;
+  final Size imageSize;
+
+  ObjectPainter({
+    required this.recognitions,
+    required this.imageBytes,
+    required this.imageSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.red
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+
+    for (var recognition in recognitions) {
+      final rect = Rect.fromLTRB(
+        recognition['rect']['x'] * imageSize.width,
+        recognition['rect']['y'] * imageSize.height,
+        recognition['rect']['w'] * imageSize.width,
+        recognition['rect']['h'] * imageSize.height,
+      );
+      canvas.drawRect(rect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }

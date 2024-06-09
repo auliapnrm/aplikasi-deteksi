@@ -186,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _isLoading
                     ? const Center(
                         child: CustomCircularProgressIndicator(
-                            imagePath: 'assets/logo/circularcustom.png', size: 20),
+                            imagePath: 'assets/logo/circularcustom.png', size: 25),
                       )
                     : InkWell(
                         onTap: _login,

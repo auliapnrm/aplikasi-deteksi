@@ -1,4 +1,3 @@
-import 'package:device_frame/device_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lottie/lottie.dart';
@@ -36,21 +35,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
-// class DevicePreviewScreen extends StatelessWidget {
-//   const DevicePreviewScreen({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: DeviceFrame(
-//         device: Devices.ios.iPhone13,
-//         screen: BottomNavBar(user: user),
-//       ),
-//     );
-//   }
-// }
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({Key? key}) : super(key: key);
