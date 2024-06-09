@@ -9,8 +9,6 @@ class ApiService {
   final storage = const FlutterSecureStorage();
 
   Future<UserModel?> login(String username, String password) async {
-    print("Attempting login with: $username, $password");
-
     final response = await http.post(
       Uri.parse('${baseUrl}login'),
       headers: {'Content-Type': 'application/json'},
@@ -19,9 +17,6 @@ class ApiService {
         'password': password,
       }),
     );
-
-    print("Login response: ${response.statusCode}");
-    print("Login response body: ${response.body}");
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -43,32 +38,36 @@ class ApiService {
       }),
     );
 
-    print("Register response: ${response.statusCode}");
-    print("Register response body: ${response.body}");
-
     return response.statusCode == 201;
   }
 
   Future<List<dynamic>?> detectImage(Uint8List imageBytes) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
+      print("No token found");
       return null;
     }
 
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${baseUrl}detect'),
-    );
-    request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(http.MultipartFile.fromBytes('image', imageBytes));
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${baseUrl}detect'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: 'image.jpg'));
 
-    final response = await request.send();
+      final response = await request.send().timeout(const Duration(seconds: 30));
 
-    if (response.statusCode == 200) {
-      final responseData = await response.stream.bytesToString();
-      final data = jsonDecode(responseData);
-      return data['detection_result'];
-    } else {
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final data = jsonDecode(responseData);
+        return data['detection_result'];
+      } else {
+        print("Failed to detect image: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error during detect image request: $e");
       return null;
     }
   }
@@ -98,10 +97,11 @@ class ApiService {
       throw Exception('Failed to save detection results');
     }
   }
-  
+
   Future<List<dynamic>?> detectFrame(Uint8List frameBytes) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
+      print("No access token found");
       return null;
     }
 
@@ -110,7 +110,7 @@ class ApiService {
       Uri.parse('${baseUrl}detect_frame'),
     );
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(http.MultipartFile.fromBytes('frame', frameBytes));
+    request.files.add(http.MultipartFile.fromBytes('frame', frameBytes, filename: 'frame.jpg'));
 
     final response = await request.send();
 
@@ -119,6 +119,7 @@ class ApiService {
       final data = jsonDecode(responseData);
       return data['detection_result'];
     } else {
+      print("Failed to detect frame: ${response.statusCode}");
       return null;
     }
   }
