@@ -40,17 +40,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchUserStatistics();
   }
 
-Future<void> _fetchUserStatistics() async {
-  try {
-    final statistics = await _apiService.getUserStatistics(widget.user.userId.toString());
-    setState(() {
-      _userStatistics = statistics;
-    });
-  } catch (e) {
-    print('Failed to fetch user statistics: $e');
+  Future<void> _fetchUserStatistics() async {
+    try {
+      final statistics =
+          await _apiService.getUserStatistics(widget.user.userId.toString());
+      setState(() {
+        _userStatistics = statistics;
+      });
+    } catch (e) {
+      print('Failed to fetch user statistics: $e');
+    }
   }
-}
-
 
   void _scrollListener() {
     RenderBox? renderBox =
@@ -182,7 +182,7 @@ Future<void> _fetchUserStatistics() async {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const ReportScreen(),
+        builder: (context) => ReportScreen(user: widget.user),
       ),
     );
   }
@@ -376,8 +376,7 @@ Future<void> _fetchUserStatistics() async {
                             slivers: [
                               SliverToBoxAdapter(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       mainAxisAlignment:
@@ -473,7 +472,7 @@ Future<void> _fetchUserStatistics() async {
                                     ),
                                     PreventCard(
                                       text:
-                                          "◉ Setelah melakukan \n    pendeteksian\n◉ Pilih menu laporan \n◉ Riwayat deteksi keluar\n    secara langsung\n ◉ Pilih Export data",
+                                          "◉ Setelah melakukan \n    pendeteksian\n◉ Pilih menu laporan \n◉ Riwayat deteksi keluar\n    secara langsung\n◉ Pilih Export data",
                                       lottieAnimation:
                                           "assets/animations/animation8.json",
                                       title: "Export Hasil",
