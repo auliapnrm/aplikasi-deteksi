@@ -149,4 +149,19 @@ class ApiService {
       throw Exception('Failed to fetch user statistics');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getUserReports(String userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user_reports?user_id=$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer your_token_here',
+      },
+    );
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load reports');
+    }
+  }
 }
