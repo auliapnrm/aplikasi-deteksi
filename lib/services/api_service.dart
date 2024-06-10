@@ -27,7 +27,8 @@ class ApiService {
     }
   }
 
-  Future<bool> register(String username, String namaLengkap, String password) async {
+  Future<bool> register(
+      String username, String namaLengkap, String password) async {
     final response = await http.post(
       Uri.parse('${baseUrl}register'),
       headers: {'Content-Type': 'application/json'},
@@ -41,7 +42,7 @@ class ApiService {
     return response.statusCode == 201;
   }
 
-  Future<List<dynamic>?> detectImage(Uint8List imageBytes) async {
+  Future<Map<String, dynamic>?> detectImage(Uint8List imageBytes) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
       print("No token found");
@@ -54,14 +55,16 @@ class ApiService {
         Uri.parse('${baseUrl}detect'),
       );
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: 'image.jpg'));
+      request.files.add(http.MultipartFile.fromBytes('image', imageBytes,
+          filename: 'image.jpg'));
 
-      final response = await request.send().timeout(const Duration(seconds: 30));
+      final response =
+          await request.send().timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final responseData = await response.stream.bytesToString();
         final data = jsonDecode(responseData);
-        return data['detection_result'];
+        return data;
       } else {
         print("Failed to detect image: ${response.statusCode}");
         return null;
@@ -76,7 +79,8 @@ class ApiService {
     await storage.delete(key: 'access_token');
   }
 
-  Future<void> saveDetectionResults(UserModel user, Map<String, int> detectionCounts) async {
+  Future<void> saveDetectionResults(
+      UserModel user, Map<String, int> detectionCounts) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
       return;
@@ -98,7 +102,7 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>?> detectFrame(Uint8List frameBytes) async {
+  Future<Map<String, dynamic>?> detectFrame(Uint8List frameBytes) async {
     final token = await storage.read(key: 'access_token');
     if (token == null) {
       print("No access token found");
@@ -110,17 +114,39 @@ class ApiService {
       Uri.parse('${baseUrl}detect_frame'),
     );
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(http.MultipartFile.fromBytes('frame', frameBytes, filename: 'frame.jpg'));
+    request.files.add(http.MultipartFile.fromBytes('frame', frameBytes,
+        filename: 'frame.jpg'));
 
     final response = await request.send();
-
     if (response.statusCode == 200) {
       final responseData = await response.stream.bytesToString();
       final data = jsonDecode(responseData);
-      return data['detection_result'];
+      return data;
     } else {
       print("Failed to detect frame: ${response.statusCode}");
       return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserStatistics(String userId) async {
+    final token = await storage.read(key: 'access_token');
+    if (token == null) {
+      return null;
+    }
+
+    final response = await http.get(
+      Uri.parse('${baseUrl}user_statistics'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      throw Exception('Failed to fetch user statistics');
     }
   }
 }
