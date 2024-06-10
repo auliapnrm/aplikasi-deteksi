@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'package:beras_app/services/model_service.dart';
 import 'package:flutter/material.dart';
 
 class Recognition extends StatefulWidget {
   const Recognition({Key? key, required this.ready}) : super(key: key);
 
-  // indicates if the animation is finished to start streaming (for better performance)
   final bool ready;
 
   @override

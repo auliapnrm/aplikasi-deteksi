@@ -11,7 +11,7 @@ class CameraHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: const <Widget>[
           Image(
-            image: AssetImage('assets/unsada_logo.png'),
+            image: AssetImage('assets/camera_launcher.png'),
             height: 40,
             width: 40,
           ),

@@ -19,13 +19,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       HomeScreen(user: widget.user),
-      const ReportScreen(),
+      ReportScreen(user: widget.user),
       const Center(child: Text('Logging out...')),
     ];
 
     void _onItemTapped(int index) {
       if (index == 2) {
-        // Logout action
         Navigator.pushReplacementNamed(context, '/login');
       } else {
         setState(() {
