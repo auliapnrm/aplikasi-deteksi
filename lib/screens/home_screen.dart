@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:beras_app/models/user_model.dart';
 import 'package:beras_app/services/api_service.dart';
 import 'package:beras_app/widgets/camera_screen.dart';
@@ -32,12 +31,26 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
   Map<String, dynamic>? _detectionResult;
+  Map<String, dynamic>? _userStatistics;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    _fetchUserStatistics();
   }
+
+Future<void> _fetchUserStatistics() async {
+  try {
+    final statistics = await _apiService.getUserStatistics(widget.user.userId.toString());
+    setState(() {
+      _userStatistics = statistics;
+    });
+  } catch (e) {
+    print('Failed to fetch user statistics: $e');
+  }
+}
+
 
   void _scrollListener() {
     RenderBox? renderBox =
@@ -63,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Fungsi kompresi menggunakan paket image
   Uint8List compressImage(Uint8List bytes) {
     final image = img.decodeImage(bytes);
     final compressedImage = img.encodeJpg(image!, quality: 80);
@@ -84,18 +96,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
         _detectionResult = result;
       });
-      if (_detectionResult != null) {
-        final image = await decodeImageFromList(compressedBytes);
+      if (_detectionResult != null &&
+          _detectionResult!['result_image_path'] != null) {
+        final imagePath = _detectionResult!['result_image_path'];
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetectionScreen(
-              recognitions: _detectionResult!['predictions'],
-              imageBytes: compressedBytes,
-              user: widget.user,
-              imageSize: Size(image.width.toDouble(), image.height.toDouble()),
-            ),
+            builder: (context) => DetectionScreen(imagePath: imagePath),
           ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Deteksi gagal atau hasil kosong')),
         );
       }
     }
@@ -115,21 +127,37 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
         _detectionResult = result;
       });
-      if (_detectionResult != null) {
-        final image = await decodeImageFromList(compressedBytes);
+      if (_detectionResult != null &&
+          _detectionResult!['result_image_path'] != null) {
+        final imagePath = _detectionResult!['result_image_path'];
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetectionScreen(
-              recognitions: _detectionResult!['predictions'],
-              imageBytes: compressedBytes,
-              user: widget.user,
-              imageSize: Size(image.width.toDouble(), image.height.toDouble()),
-            ),
+            builder: (context) => DetectionScreen(imagePath: imagePath),
           ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Deteksi gagal atau hasil kosong')),
         );
       }
     }
+  }
+
+  Future<void> _startRealTimeDetection() async {
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CameraScreen(
+          camera: firstCamera, // Tambahkan argumen ini
+          user: widget.user,
+          apiService: _apiService,
+        ),
+      ),
+    );
   }
 
   String getGreeting() {
@@ -148,25 +176,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       return 'Halo. Selamat Malam,';
     }
-  }
-
-  Future<void> _startRealTimeDetection() async {
-    final cameras = await availableCameras();
-    final firstCamera = cameras.first;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CameraScreen(
-          controller: CameraController(
-            firstCamera,
-            ResolutionPreset.high,
-          ),
-          user: widget.user,
-          apiService: _apiService,
-        ),
-      ),
-    );
   }
 
   void _navigateToReportScreen() {
@@ -321,13 +330,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: const [
-                              GradientCard(number: '1', label: 'Total Output'),
-                              GradientCard(number: '2', label: 'Output Bagus'),
+                            children: [
                               GradientCard(
-                                  number: '3', label: 'Output Kurang Bagus'),
+                                number: _userStatistics?['total_output']
+                                        .toString() ??
+                                    '0',
+                                label: 'Total Output',
+                              ),
                               GradientCard(
-                                  number: '4', label: 'Output Tidak Bagus'),
+                                number: _userStatistics?['output_bagus']
+                                        .toString() ??
+                                    '0',
+                                label: 'Output Bagus',
+                              ),
+                              GradientCard(
+                                number: _userStatistics?['output_kurang_bagus']
+                                        .toString() ??
+                                    '0',
+                                label: 'Output Kurang Bagus',
+                              ),
+                              GradientCard(
+                                number: _userStatistics?['output_tidak_bagus']
+                                        .toString() ??
+                                    '0',
+                                label: 'Output Tidak Bagus',
+                              ),
                             ],
                           ),
                         ),
@@ -349,7 +376,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             slivers: [
                               SliverToBoxAdapter(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       mainAxisAlignment:
@@ -424,28 +452,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const [
                                     PreventCard(
                                       text:
-                                          "◉ Unggah gambar gabah \natau melalui video\n◉ Sistem memproses foto \nataupun video \n ◉ Hasil deteksi keluar \n➤ Export ke PDF, deh :)",
+                                          "◉ Unggah gambar gabah \n    atau melalui video\n◉ Sistem memproses foto \n    ataupun video \n ◉ Hasil deteksi keluar \n➤ Export ke PDF, deh :)",
                                       lottieAnimation:
                                           "assets/animations/animation7.json",
                                       title: "Langkah proses",
                                     ),
                                     PreventCard(
                                       text:
-                                          "◉ Unggah gambar gabah \n◉ Pilih gambar gabah yang\n ingin dideteksi \n◉ Hasil deteksi keluar",
+                                          "◉ Unggah gambar gabah \n◉ Pilih gambar gabah yang\n    ingin dideteksi \n◉ Hasil deteksi keluar",
                                       lottieAnimation:
                                           "assets/animations/animation6.json",
                                       title: "Melalui Foto",
                                     ),
                                     PreventCard(
                                       text:
-                                          "◉ Buka kamera kamu \n◉ Pilih menggunakan video \n◉ Hasil deteksi keluar\n secara real-time",
+                                          "◉ Buka kamera kamu \n◉ Pilih menggunakan video \n◉ Hasil deteksi keluar\n   secara real-time",
                                       lottieAnimation:
                                           "assets/animations/animation9.json",
                                       title: "Secara Realtime",
                                     ),
                                     PreventCard(
                                       text:
-                                          "◉ Setelah melakukan \npendeteksian\n◉ Pilih menu laporan \n◉ Riwayat deteksi keluar\nsecara langsung\n ◉ Pilih Export data",
+                                          "◉ Setelah melakukan \n    pendeteksian\n◉ Pilih menu laporan \n◉ Riwayat deteksi keluar\n    secara langsung\n ◉ Pilih Export data",
                                       lottieAnimation:
                                           "assets/animations/animation8.json",
                                       title: "Export Hasil",
@@ -622,7 +650,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           imagePath: 'assets/logo/circularcustom.png'),
                       SizedBox(height: 20),
                       Text(
-                        "Sedang memproses foto \nTunggu dulu yaaaw...",
+                        "Sedang memproses foto nih.",
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                      ),
+                      Text(
+                        "Tunggu dulu yaaaw...",
                         style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
                       ),
                     ],
