@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:beras_app/models/user_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:5000/';
+  static const String baseUrl = 'http://192.168.64.183:5000/';
   final storage = const FlutterSecureStorage();
 
   Future<UserModel?> login(String username, String password) async {

@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Unhusked Rice Detection Apps",
+      title: "DeBenih Application",
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

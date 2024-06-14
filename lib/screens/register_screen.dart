@@ -22,37 +22,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final ApiService _apiService = ApiService();
 
   Future<void> _register() async {
-    String username = _usernameController.text.trim();
-    String namaLengkap = _namaLengkapController.text.trim();
-    String password = _passwordController.text.trim();
+  String username = _usernameController.text.trim();
+  String namaLengkap = _namaLengkapController.text.trim();
+  String password = _passwordController.text.trim();
 
-    if (username.isEmpty || namaLengkap.isEmpty || password.isEmpty) {
-      _showCupertinoDialog("Error", "Semua field harus diisi");
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      bool success =
-          await _apiService.register(username, namaLengkap, password);
-      if (success) {
-        Navigator.pop(context);
-      } else {
-        _showCupertinoDialog(
-            "Error", "Registrasi gagal. Username sudah digunakan.");
-      }
-    } catch (e) {
-      _showCupertinoDialog(
-          "Error", "Terjadi kesalahan saat registrasi. Silakan coba lagi.");
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
+  if (username.isEmpty || namaLengkap.isEmpty || password.isEmpty) {
+    _showCupertinoDialog("Error", "Semua field harus diisi");
+    return;
   }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    bool success = await _apiService.register(username, namaLengkap, password);
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } else {
+      _showCupertinoDialog(
+          "Error", "Registrasi gagal. Username sudah digunakan.");
+    }
+  } catch (e) {
+    _showCupertinoDialog(
+        "Error", "Terjadi kesalahan saat registrasi. Silakan coba lagi.");
+  }
+
+  setState(() {
+    _isLoading = false;
+  });
+}
+
 
   void _showCupertinoDialog(String title, String message) {
     showCupertinoDialog(
