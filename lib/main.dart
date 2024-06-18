@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lottie/lottie.dart';
 import 'package:beras_app/models/user_model.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/register_screen.dart';
 import 'widgets/bottom_navbar.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+  await Permission.camera.request();
 }
 
 class MyApp extends StatelessWidget {

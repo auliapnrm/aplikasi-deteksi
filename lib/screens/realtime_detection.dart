@@ -18,13 +18,12 @@ class _RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
         title: const Text('DeBenih Realtime Detection', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
       ),
-      body: InAppWebView(
+       body: InAppWebView(
         initialFile: 'assets/roboflow.html',
         initialOptions: InAppWebViewGroupOptions(
           crossPlatform: InAppWebViewOptions(
             javaScriptEnabled: true,
-            useOnLoadResource: true,
-            useShouldOverrideUrlLoading: true,
+            mediaPlaybackRequiresUserGesture: false,
           ),
         ),
         onWebViewCreated: (controller) {
@@ -37,11 +36,11 @@ class _RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
             },
           );
         },
-        onLoadError: (controller, url, code, message) {
-          print('Error: $code, $message');
+        onLoadStop: (controller, url) {
+          print("Page loaded: $url");
         },
-        onLoadStop: (controller, url) async {
-          print('Page loaded: $url');
+        onLoadError: (controller, url, code, message) {
+          print("Failed to load page: $url, Error: $code, Message: $message");
         },
       ),
     );

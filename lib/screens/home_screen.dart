@@ -15,6 +15,7 @@ import 'package:lottie/lottie.dart';
 import '../constant.dart';
 import 'detection_screen.dart';
 import 'report_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -146,12 +147,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _startRealTimeDetection() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const RealTimeDetectionPage(),
-      ),
-    );
+    var status = await Permission.camera.status;
+    if (!status.isGranted) {
+      status = await Permission.camera.request();
+    }
+
+    if (status.isGranted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RealTimeDetectionPage(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kamera tidak diizinkan')),
+      );
+    }
   }
 
   String getGreeting() {
