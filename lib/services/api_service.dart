@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:beras_app/models/user_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:beras_app/models/user_model.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.64.183:5000/';
+  static const String baseUrl = 'https://apidbenih.pythonanywhere.com/';
   final storage = const FlutterSecureStorage();
 
   Future<UserModel?> login(String username, String password) async {
@@ -55,15 +57,15 @@ class ApiService {
         Uri.parse('${baseUrl}detect'),
       );
       request.headers['Authorization'] = 'Bearer $token';
+      final mimeType = lookupMimeType('', headerBytes: imageBytes);
       request.files.add(http.MultipartFile.fromBytes('image', imageBytes,
-          filename: 'image.jpg'));
+          filename: 'image.jpg', contentType: MediaType.parse(mimeType!)));
 
-      final response =
-          await request.send().timeout(const Duration(seconds: 30));
+      final response = await request.send().timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
-        final responseData = await response.stream.bytesToString();
-        final data = jsonDecode(responseData);
+        final responseData = await http.Response.fromStream(response);
+        final data = jsonDecode(responseData.body);
         return data;
       } else {
         print("Failed to detect image: ${response.statusCode}");
@@ -114,13 +116,14 @@ class ApiService {
       Uri.parse('${baseUrl}detect_frame'),
     );
     request.headers['Authorization'] = 'Bearer $token';
+    final mimeType = lookupMimeType('', headerBytes: frameBytes);
     request.files.add(http.MultipartFile.fromBytes('frame', frameBytes,
-        filename: 'frame.jpg'));
+        filename: 'frame.jpg', contentType: MediaType.parse(mimeType!)));
 
     final response = await request.send();
     if (response.statusCode == 200) {
-      final responseData = await response.stream.bytesToString();
-      final data = jsonDecode(responseData);
+      final responseData = await http.Response.fromStream(response);
+      final data = jsonDecode(responseData.body);
       return data;
     } else {
       print("Failed to detect frame: ${response.statusCode}");

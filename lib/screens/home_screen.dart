@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:beras_app/models/user_model.dart';
+import 'package:beras_app/screens/realtime_detection.dart';
 import 'package:beras_app/services/api_service.dart';
 import 'package:beras_app/widgets/camera_screen.dart';
 import 'package:beras_app/widgets/customcircular.dart';
@@ -145,17 +146,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _startRealTimeDetection() async {
-    final cameras = await availableCameras();
-    final firstCamera = cameras.first;
-
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CameraScreen(
-          camera: firstCamera, // Tambahkan argumen ini
-          user: widget.user,
-          apiService: _apiService,
-        ),
+        builder: (context) => const RealTimeDetectionPage(),
       ),
     );
   }

@@ -20,7 +20,7 @@ class DetectionScreen extends StatelessWidget {
         await folder.create();
       }
       final imageName = imagePath.split('/').last;
-      final imageUrl = 'http://192.168.20.136:5000/$imagePath';
+      final imageUrl = 'https://apidbenih.pythonanywhere.com/$imagePath';
 
       final response = await http.get(Uri.parse(imageUrl));
       if (response.statusCode == 200) {
@@ -55,7 +55,7 @@ class DetectionScreen extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Image.network(
-              'http://192.168.20.136:5000/$imagePath',
+              'https://apidbenih.pythonanywhere.com/$imagePath',
               fit: BoxFit.cover,
             ),
           ),

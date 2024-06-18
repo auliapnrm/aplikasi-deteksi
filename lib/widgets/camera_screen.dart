@@ -1,3 +1,5 @@
+import 'package:beras_app/screens/realtime_detection.dart';
+import 'package:beras_app/widgets/customcircular.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +91,8 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     if (!_controller.value.isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CustomCircularProgressIndicator(
+            imagePath: 'assets/logo/circularcustom.png'),
       );
     }
     return Scaffold(
@@ -109,6 +112,16 @@ class _CameraScreenState extends State<CameraScreen> {
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Kembali'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RealTimeDetectionPage()),
+                    );
+                  },
+                  child: const Text('Real-time Detection'),
                 ),
               ],
             ),
