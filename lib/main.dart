@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
               ModalRoute.of(context)!.settings.arguments as UserModel;
           return BottomNavBar(user: user);
         },
-        '/realtime_detection': (context) => const RealTimeDetectionPage(),
+        '/realtime_detection': (context) => const RealTimeClassificationPage(),
       },
     );
   }

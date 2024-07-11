@@ -4,35 +4,37 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:camera/camera.dart';
-import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
+import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 
 import '../widgets/camera_preview.dart';
 
-class RealTimeDetectionPage extends StatefulWidget {
-  const RealTimeDetectionPage({super.key});
+class RealTimeClassificationPage extends StatefulWidget {
+  const RealTimeClassificationPage({super.key});
 
   @override
-  RealTimeDetectionPageState createState() => RealTimeDetectionPageState();
+  RealTimeClassificationPageState createState() =>
+      RealTimeClassificationPageState();
 }
 
-class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
+class RealTimeClassificationPageState
+    extends State<RealTimeClassificationPage> {
   late CameraController _controller;
-  late ObjectDetector _objectDetector;
+  late ImageLabeler _imageLabeler;
   bool _isDetecting = false;
-  List<DetectedObject> _detectedObjects = [];
+  List<ImageLabel> _labels = [];
   bool _isCameraInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
-    _initializeObjectDetector();
+    _initializeImageLabeler();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _objectDetector.close();
+    _imageLabeler.close();
     super.dispose();
   }
 
@@ -54,24 +56,29 @@ class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
     });
   }
 
-  Future<void> _initializeObjectDetector() async {
-    final modelPath = await getModelPath('assets/model_unquant.tflite');
-    final options = LocalObjectDetectorOptions(
-      mode: DetectionMode.stream,
+  Future<void> _initializeImageLabeler() async {
+    final modelPath = await getModelPath('assets/model_quantized.tflite');
+    final options = LocalLabelerOptions(
       modelPath: modelPath,
-      classifyObjects: true,
-      multipleObjects: true,
+      confidenceThreshold: 0.5,
     );
-    _objectDetector = ObjectDetector(options: options);
+    _imageLabeler = ImageLabeler(options: options);
   }
 
   Future<void> _processCameraImage(CameraImage image) async {
     final inputImage = _processCameraImageToInputImage(image);
-    final objects = await _objectDetector.processImage(inputImage);
-    setState(() {
-      _detectedObjects = objects;
-      _isDetecting = false;
-    });
+    try {
+      final labels = await _imageLabeler.processImage(inputImage);
+      setState(() {
+        _labels = labels;
+        _isDetecting = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isDetecting = false;
+      });
+      print('Error processing image: $e');
+    }
   }
 
   InputImage _processCameraImageToInputImage(CameraImage image) {
@@ -80,7 +87,8 @@ class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
       allBytes.putUint8List(plane.bytes);
     }
     final bytes = allBytes.done().buffer.asUint8List();
-    final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    final Size imageSize =
+        Size(image.width.toDouble(), image.height.toDouble());
     const InputImageRotation imageRotation = InputImageRotation.rotation0deg;
     const InputImageFormat inputImageFormat = InputImageFormat.yuv420;
     final planeData = image.planes.map((Plane plane) {
@@ -107,7 +115,8 @@ class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
     final file = File(path);
     if (!await file.exists()) {
       final byteData = await rootBundle.load(asset);
-      await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+      await file.writeAsBytes(byteData.buffer
+          .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     }
     return file.path;
   }
@@ -136,30 +145,39 @@ class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
               ),
             ),
           ),
-          if (_detectedObjects.isNotEmpty)
-            ..._detectedObjects.map((object) {
-              return Positioned(
-                left: object.boundingBox.left * MediaQuery.of(context).size.width,
-                top: object.boundingBox.top * MediaQuery.of(context).size.height,
-                width: object.boundingBox.width * MediaQuery.of(context).size.width,
-                height: object.boundingBox.height * MediaQuery.of(context).size.height,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.red,
-                      width: 3,
-                    ),
-                  ),
-                  child: Text(
-                    "${object.labels.first.text} ${(object.labels.first.confidence * 100).toStringAsFixed(0)}%",
-                    style: const TextStyle(
-                      backgroundColor: Colors.red,
-                      color: Colors.white,
-                    ),
+          if (_labels.isNotEmpty)
+            Positioned(
+              bottom: 100, // Mengubah posisi card lebih ke atas
+              left: 20,
+              right: 20,
+              child: Card(
+                color: Colors.white,
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: _labels.map((label) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          "${label.label}: ${(label.confidence * 100).toStringAsFixed(2)}%",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
-              );
-            }).toList(),
+              ),
+            ),
           Positioned(
             bottom: 20,
             left: 20,
