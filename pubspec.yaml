@@ -89,6 +89,7 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/camera_launcher.png
+    - assets/model.tflite
     - assets/model_unquant.tflite
     - assets/model_quantized.tflite
     - assets/labels.txt

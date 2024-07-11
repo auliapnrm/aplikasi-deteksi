@@ -4,37 +4,37 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:camera/camera.dart';
-import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
+import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
 
 import '../widgets/camera_preview.dart';
 
-class RealTimeClassificationPage extends StatefulWidget {
-  const RealTimeClassificationPage({super.key});
+class RealTimeDetectionPage extends StatefulWidget {
+  const RealTimeDetectionPage({super.key});
 
   @override
-  RealTimeClassificationPageState createState() =>
-      RealTimeClassificationPageState();
+  RealTimeDetectionPageState createState() => RealTimeDetectionPageState();
 }
 
-class RealTimeClassificationPageState
-    extends State<RealTimeClassificationPage> {
+class RealTimeDetectionPageState extends State<RealTimeDetectionPage> {
   late CameraController _controller;
-  late ImageLabeler _imageLabeler;
+  late ObjectDetector _objectDetector;
   bool _isDetecting = false;
-  List<ImageLabel> _labels = [];
+  List<DetectedObject> _detectedObjects = [];
   bool _isCameraInitialized = false;
+  List<String> _labels = [];
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
-    _initializeImageLabeler();
+    _initializeObjectDetector();
+    _loadLabels();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _imageLabeler.close();
+    _objectDetector.close();
     super.dispose();
   }
 
@@ -56,21 +56,24 @@ class RealTimeClassificationPageState
     });
   }
 
-  Future<void> _initializeImageLabeler() async {
-    final modelPath = await getModelPath('assets/model_quantized.tflite');
-    final options = LocalLabelerOptions(
+  Future<void> _initializeObjectDetector() async {
+    final modelPath = await getModelPath('assets/model.tflite');
+    final options = LocalObjectDetectorOptions(
       modelPath: modelPath,
+      mode: DetectionMode.stream,
+      classifyObjects: true,
+      multipleObjects: true,
       confidenceThreshold: 0.5,
     );
-    _imageLabeler = ImageLabeler(options: options);
+    _objectDetector = ObjectDetector(options: options);
   }
 
   Future<void> _processCameraImage(CameraImage image) async {
     final inputImage = _processCameraImageToInputImage(image);
     try {
-      final labels = await _imageLabeler.processImage(inputImage);
+      final objects = await _objectDetector.processImage(inputImage);
       setState(() {
-        _labels = labels;
+        _detectedObjects = objects;
         _isDetecting = false;
       });
     } catch (e) {
@@ -121,6 +124,13 @@ class RealTimeClassificationPageState
     return file.path;
   }
 
+  Future<void> _loadLabels() async {
+    final String labelsData = await rootBundle.loadString('assets/labels.txt');
+    setState(() {
+      _labels = labelsData.split('\n');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isCameraInitialized) {
@@ -145,39 +155,34 @@ class RealTimeClassificationPageState
               ),
             ),
           ),
-          if (_labels.isNotEmpty)
-            Positioned(
-              bottom: 100, // Mengubah posisi card lebih ke atas
-              left: 20,
-              right: 20,
-              child: Card(
-                color: Colors.white,
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: _labels.map((label) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Text(
-                          "${label.label}: ${(label.confidence * 100).toStringAsFixed(2)}%",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    }).toList(),
+          if (_detectedObjects.isNotEmpty)
+            ..._detectedObjects.map((object) {
+              return Positioned(
+                left:
+                    object.boundingBox.left * MediaQuery.of(context).size.width,
+                top:
+                    object.boundingBox.top * MediaQuery.of(context).size.height,
+                width: object.boundingBox.width *
+                    MediaQuery.of(context).size.width,
+                height: object.boundingBox.height *
+                    MediaQuery.of(context).size.height,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.red,
+                      width: 3,
+                    ),
+                  ),
+                  child: Text(
+                    "${_labels[object.labels.first.index]} ${(object.labels.first.confidence * 100).toStringAsFixed(2)}%",
+                    style: const TextStyle(
+                      backgroundColor: Colors.red,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }).toList(),
           Positioned(
             bottom: 20,
             left: 20,

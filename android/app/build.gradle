@@ -58,4 +58,5 @@ flutter {
 dependencies {
     implementation 'org.tensorflow:tensorflow-lite:+'
     implementation 'org.tensorflow:tensorflow-lite-gpu:+'
+    implementation 'com.google.mlkit:object-detection:17.0.1'
 }
